@@ -1,12 +1,12 @@
 import { requireAdmin } from "@/lib/auth";
-import { read } from "@/lib/store";
+import { listUsers, listAllPosts } from "@/lib/db";
 import { adminReply, adminDeletePost, adminRemoveMember } from "../actions";
 
 export default async function Admin() {
   await requireAdmin();
-  const { users, posts } = read();
+  const [users, posts] = await Promise.all([listUsers(), listAllPosts()]);
   const byId = Object.fromEntries(users.map((u) => [u.id, u]));
-  const sorted = [...posts].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const sorted = posts;
   return (
     <>
       <h1>Admin console</h1>
@@ -32,7 +32,7 @@ export default async function Admin() {
                     <td>{u.email}</td>
                     <td>{u.institution || "—"}</td>
                     <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                    <td>{posts.filter((p) => p.userId === u.id).length}</td>
+                    <td>{u.postCount}</td>
                     <td>
                       <form action={adminRemoveMember}>
                         <input type="hidden" name="userId" value={u.id} />

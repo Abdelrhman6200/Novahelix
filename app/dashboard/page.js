@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireMember } from "@/lib/auth";
-import { read } from "@/lib/store";
+import { listPostsForUser } from "@/lib/db";
 import { createPost } from "../actions";
 
 export default async function Dashboard({ searchParams }) {
@@ -8,9 +8,7 @@ export default async function Dashboard({ searchParams }) {
   if (s.role === "admin") redirect("/admin");
   const { error } = await searchParams;
   // Members only ever receive their own posts.
-  const posts = read()
-    .posts.filter((p) => p.userId === s.user.id)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const posts = await listPostsForUser(s.user.id);
   return (
     <>
       <h1>Hello, {s.user.name}</h1>
