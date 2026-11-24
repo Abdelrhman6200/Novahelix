@@ -71,10 +71,10 @@ export async function createPost(fd) {
   if (s.role !== "member") redirect("/admin");
   const title = str(fd, "title", 150);
   const body = str(fd, "body", 5000);
-  if (!title || !body) fail("/dashboard", "Title and message are required.");
+  if (!title || !body) fail("/messages", "Subject and message are required.");
   await db.createPost({ id: id(), userId: s.user.id, title, body });
-  revalidatePath("/dashboard");
-  redirect("/dashboard");
+  revalidatePath("/messages");
+  redirect("/messages");
 }
 
 export async function adminReply(fd) {
@@ -83,21 +83,21 @@ export async function adminReply(fd) {
   const body = str(fd, "body", 5000);
   if (!body) return;
   await db.addReply({ id: id(), postId, body, scope });
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function adminDeletePost(fd) {
   const { scope } = await requireAdmin();
   const postId = str(fd, "postId", 64);
   await db.deletePost(postId, scope);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function adminRemoveMember(fd) {
   const { scope } = await requireAdmin();
   const userId = str(fd, "userId", 64);
   await db.removeUser(userId, scope);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function adminSetTrackerName(fd) {
@@ -105,7 +105,7 @@ export async function adminSetTrackerName(fd) {
   const userId = str(fd, "userId", 64);
   const name = str(fd, "name", 200);
   await db.setTrackerName(userId, name || null, scope);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function postIdea(fd) {

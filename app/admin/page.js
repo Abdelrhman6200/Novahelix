@@ -1,121 +1,85 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { listUsers, listAllPosts, listProjects } from "@/lib/db";
 import { matchRole } from "@/lib/names";
-import { adminReply, adminDeletePost, adminRemoveMember, adminSetTrackerName } from "../actions";
+import { Avatar, Chip, Empty, PageHeader, PROGRESS, Stat } from "@/components/ui";
 
-export default async function Admin() {
+export const metadata = { title: "Overview" };
+
+export default async function Overview() {
   const { scope } = await requireAdmin();
   const [users, posts, projects] = await Promise.all([listUsers(scope), listAllPosts(scope), listProjects()]);
-  const byId = Object.fromEntries(users.map((u) => [u.id, u]));
-  const names = [...new Set(projects.flatMap((p) => [p.lead, ...p.researchers]).filter(Boolean))].sort();
-  const linked = users.filter((u) => u.trackerName).length;
+  const unlinked = users.filter((u) => !u.trackerName);
+  const awaiting = posts.filter((p) => p.replies.length === 0);
+  const counts = Object.keys(PROGRESS).map((k) => ({ k, n: projects.filter((p) => p.progress === k).length }));
+  const slow = projects.filter((p) => p.pace === "Slow" && p.progress !== "Completed");
+
   return (
     <>
-      <h1>Admin console</h1>
-      <p className="mut">
-        {users.length} member{users.length === 1 ? "" : "s"} · {linked} linked to the tracker · {projects.length} project
-        {projects.length === 1 ? "" : "s"} · {posts.length} discussion{posts.length === 1 ? "" : "s"}. Only you can see this page.
-      </p>
+      <PageHeader title="Overview" subtitle="Everything across your members and research projects." />
 
-      <div className="card">
-        <h2>All members</h2>
-        <p className="mut">
-          Set a member's <strong>Tracker name</strong> to link their account to their projects. Start typing and pick the
-          exact name from the research tracker.
-        </p>
-        {users.length === 0 ? (
-          <p className="mut">No members yet.</p>
-        ) : (
-          <div className="tablewrap">
-            <datalist id="names">{names.map((n) => <option key={n} value={n} />)}</datalist>
-            <table>
-              <thead>
-                <tr><th>Name</th><th>Email</th><th>Tracker name</th><th>Projects</th><th></th></tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>
-                      <form action={adminSetTrackerName} className="row" style={{ flexWrap: "nowrap" }}>
-                        <input type="hidden" name="userId" value={u.id} />
-                        <input name="name" list="names" defaultValue={u.trackerName || ""} placeholder="Not linked" style={{ minWidth: 190 }} />
-                        <button className="ghost">Save</button>
-                      </form>
-                    </td>
-                    <td>{projects.filter((p) => matchRole(p, u.trackerName)).length}</td>
-                    <td>
-                      <form action={adminRemoveMember}>
-                        <input type="hidden" name="userId" value={u.id} />
-                        <button className="danger">Remove</button>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <div className="stats">
+        <Stat label="Members" value={users.length} hint={`${users.length - unlinked.length} linked to the tracker`} />
+        <Stat label="Projects" value={projects.length} hint={`${counts.find((c) => c.k === "In Progress")?.n || 0} in progress`} />
+        <Stat label="Awaiting reply" value={awaiting.length} hint="Member messages with no reply" />
+        <Stat label="Slow pace" value={slow.length} hint="Projects that may need a push" />
       </div>
 
       <div className="card">
-        <h2>Research progress</h2>
+        <div className="row"><h2>Research progress</h2><Link className="btn ghost sm" href="/admin/projects">View all projects</Link></div>
         {projects.length === 0 ? (
-          <p className="mut">No tracker data imported yet.</p>
+          <Empty title="No tracker data yet" />
         ) : (
-          <div className="tablewrap">
-            <table>
-              <thead>
-                <tr><th>Project</th><th>Type</th><th>Progress</th><th>Pace</th><th>Lead</th><th>Researchers</th><th>Accounts</th><th>Notes</th></tr>
-              </thead>
-              <tbody>
-                {projects.map((p) => (
-                  <tr key={p.id}>
-                    <td>{p.title}</td>
-                    <td>{p.type || "—"}</td>
-                    <td>{p.progress || "—"}</td>
-                    <td>{p.pace || "—"}</td>
-                    <td>{p.lead || "—"}</td>
-                    <td>{p.researchers.join(", ") || "—"}</td>
-                    <td>{users.filter((u) => matchRole(p, u.trackerName)).map((u) => u.email).join(", ") || "—"}</td>
-                    <td>{p.notes || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <div className="stack-bar" style={{ marginTop: 14 }} role="img" aria-label="Projects by progress stage">
+              {counts.filter((c) => c.n).map((c) => (
+                <i key={c.k} style={{ flex: c.n, background: PROGRESS[c.k].color }} title={`${c.k}: ${c.n}`} />
+              ))}
+            </div>
+            <div className="legend">
+              {counts.map((c) => (
+                <span key={c.k}><span className="dot" style={{ background: PROGRESS[c.k].color }} />{c.k} <b>{c.n}</b></span>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
-      <h2>All discussions</h2>
-      {posts.length === 0 && <p className="mut">Nothing posted yet.</p>}
-      {posts.map((p) => (
-        <div className="card" key={p.id}>
-          <div className="row">
-            <strong>{p.title}</strong>
-            <form action={adminDeletePost}>
-              <input type="hidden" name="postId" value={p.id} />
-              <button className="danger">Delete</button>
-            </form>
-          </div>
-          <div className="mut">
-            {byId[p.userId]?.name ?? "Unknown"} ({byId[p.userId]?.email}) · {new Date(p.createdAt).toLocaleString()}
-          </div>
-          <p style={{ whiteSpace: "pre-wrap" }}>{p.body}</p>
-          {p.replies.map((r) => (
-            <div className="reply" key={r.id}>
-              <span className="badge">You</span>
-              <div style={{ whiteSpace: "pre-wrap" }}>{r.body}</div>
-            </div>
-          ))}
-          <form action={adminReply} className="stack">
-            <input type="hidden" name="postId" value={p.id} />
-            <textarea name="body" rows={2} placeholder="Reply…" required maxLength={5000} />
-            <button>Reply</button>
-          </form>
+      <div className="grid g2">
+        <div className="card" style={{ margin: 0 }}>
+          <div className="row"><h2>Needs a reply</h2><Link className="btn ghost sm" href="/admin/discussions">Open</Link></div>
+          {awaiting.length === 0 ? (
+            <p className="mut">You're all caught up.</p>
+          ) : (
+            awaiting.slice(0, 5).map((p) => {
+              const u = users.find((x) => x.id === p.userId);
+              return (
+                <div className="who" key={p.id} style={{ padding: "10px 0", borderTop: "1px solid var(--bd)" }}>
+                  <Avatar name={u?.name} />
+                  <div><b>{p.title}</b><span>{u?.name} · {new Date(p.createdAt).toLocaleDateString()}</span></div>
+                </div>
+              );
+            })
+          )}
         </div>
-      ))}
+        <div className="card" style={{ margin: 0 }}>
+          <div className="row"><h2>Accounts not linked</h2><Link className="btn ghost sm" href="/admin/members">Link</Link></div>
+          {unlinked.length === 0 ? (
+            <p className="mut">Every member is linked to the tracker.</p>
+          ) : (
+            <>
+              <p className="mut small">These members can't see projects until you set their tracker name.</p>
+              {unlinked.slice(0, 6).map((u) => (
+                <div className="who" key={u.id} style={{ padding: "8px 0", borderTop: "1px solid var(--bd)" }}>
+                  <Avatar name={u.name} />
+                  <div><b>{u.name}</b><span>{u.email}</span></div>
+                </div>
+              ))}
+              {unlinked.length > 6 && <p className="mut small">and {unlinked.length - 6} more</p>}
+            </>
+          )}
+        </div>
+      </div>
     </>
   );
 }
