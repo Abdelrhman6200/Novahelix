@@ -113,8 +113,8 @@ export async function postIdea(fd) {
   if (s.role !== "manager") redirect("/ideas");
   const title = str(fd, "title", 150);
   const body = str(fd, "body", 5000);
-  if (!title || !body) fail("/ideas", "Title and description are required.");
-  await db.createIdea({ id: id(), managerId: s.user.id, title, body });
+  if (!title) fail("/ideas", "A title is required.");
+  await db.createIdea({ id: id(), managerId: s.user.id, title, body, field: str(fd, "field", 100) || null });
   revalidatePath("/ideas");
   redirect("/ideas");
 }
@@ -129,8 +129,8 @@ export async function removeIdea(fd) {
 export async function respondToIdea(fd) {
   const s = await requireMember();
   if (s.role !== "member") redirect("/ideas");
-  const body = str(fd, "body", 5000);
-  if (!body) return;
-  await db.addIdeaResponse({ id: id(), ideaId: str(fd, "ideaId", 64), user: s.user, body });
+  const stance = str(fd, "stance", 20);
+  if (!["lead", "interested", "pass"].includes(stance)) return;
+  await db.addIdeaResponse({ id: id(), ideaId: str(fd, "ideaId", 64), user: s.user, body: str(fd, "body", 3000), stance });
   revalidatePath("/ideas");
 }
