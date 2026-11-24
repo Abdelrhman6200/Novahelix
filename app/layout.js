@@ -16,7 +16,6 @@ export default async function RootLayout({ children }) {
         <header>
           <Link href="/" className="brand">🧬 Nova Helix Research Hub</Link>
           <nav>
-            <Link href="/">Overview</Link>
             {!s && <Link href="/login">Sign in</Link>}
             {!s && <Link href="/register">Join</Link>}
             {s?.role === "member" && <Link href="/dashboard">Discussion</Link>}
