@@ -17,6 +17,7 @@ const MANAGER_NAV = [
   { href: "/admin/members", text: "Members", icon: "users" },
   { href: "/admin/projects", text: "Research progress", icon: "chart" },
   { href: "/admin/discussions", text: "Discussions", icon: "message" },
+  { href: "/admin/activity", text: "Activity log", icon: "clock" },
   { label: "Collaborate" },
   { href: "/ideas", text: "Research ideas", icon: "bulb" },
 ];
