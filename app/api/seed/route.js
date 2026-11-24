@@ -15,6 +15,7 @@ export async function POST(req) {
   if (!crypto.timingSafeEqual(h(req.headers.get("x-seed-token") || ""), h(token))) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
+  try {
   const { managerEmail, managerPassword, memberPassword, emails } = await req.json();
   const mEmail = String(managerEmail).trim().toLowerCase();
   const nameOf = (e) => e.split("@")[0];
@@ -36,4 +37,7 @@ export async function POST(req) {
     else { await db.setRoleAndManager(email, "member", manager.id); linked++; }
   }
   return NextResponse.json({ manager: managerAction, created, linked });
+  } catch (e) {
+    return NextResponse.json({ error: String(e?.message || e).slice(0, 400), code: e?.code, name: e?.name }, { status: 500 });
+  }
 }
