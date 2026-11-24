@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import * as db from "@/lib/db";
+import { neon } from "@neondatabase/serverless";
 import { hashPassword } from "@/lib/password";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,13 @@ export async function POST(req) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   try {
-  const { managerEmail, managerPassword, memberPassword, emails } = await req.json();
+  const body = await req.json();
+  if (body.diag) {
+    const q = neon(process.env.DATABASE_URL || process.env.POSTGRES_URL);
+    const cols = await q`SELECT table_schema, table_name, column_name, data_type FROM information_schema.columns WHERE table_schema NOT IN ('pg_catalog','information_schema') ORDER BY 1,2,ordinal_position`;
+    return NextResponse.json({ cols });
+  }
+  const { managerEmail, managerPassword, memberPassword, emails } = body;
   const mEmail = String(managerEmail).trim().toLowerCase();
   const nameOf = (e) => e.split("@")[0];
 
