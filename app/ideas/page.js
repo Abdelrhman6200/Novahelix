@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireMember } from "@/lib/auth";
 import { listIdeasForManager, listIdeasForMember } from "@/lib/db";
-import { postIdea, removeIdea, respondToIdea } from "../actions";
+import { postIdea, removeIdea, respondToIdea, removeMyOpinion } from "../actions";
 import { Avatar, Chip, Empty, PageHeader, Stat } from "@/components/ui";
 
 export const metadata = { title: "Research ideas" };
@@ -156,6 +156,12 @@ export default async function Ideas({ searchParams }) {
                       <textarea name="body" rows={3} maxLength={3000} defaultValue={mine?.body || ""} placeholder="Optional: why, what angle you'd take, who could join…" aria-label="Comment" />
                       <div><button className="sm">Save opinion</button></div>
                     </form>
+                    {mine && (
+                      <form action={removeMyOpinion} style={{ marginTop: 8 }}>
+                        <input type="hidden" name="ideaId" value={i.id} />
+                        <button className="ghost sm">Remove my opinion</button>
+                      </form>
+                    )}
                   </details>
                 )}
               </div>

@@ -168,6 +168,14 @@ export async function respondToIdea(fd) {
   revalidatePath("/ideas");
 }
 
+export async function removeMyOpinion(fd) {
+  const s = await requireMember();
+  if (s.role !== "member") redirect("/ideas");
+  await db.removeIdeaResponse({ ideaId: str(fd, "ideaId", 64), userId: s.user.id });
+  await record(s, "opinion_removed", "Withdrew an opinion");
+  revalidatePath("/ideas");
+}
+
 export async function clearActivityLog() {
   const { scope, session } = await requireAdmin();
   await db.clearActivity(scope);

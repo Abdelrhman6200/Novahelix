@@ -25,6 +25,7 @@ const EVENTS = {
   idea_posted: "Posted an idea",
   idea_deleted: "Deleted an idea",
   opinion_saved: "Saved an opinion",
+  opinion_removed: "Withdrew an opinion",
   log_cleared: "Cleared the log",
 };
 
