@@ -8,9 +8,9 @@ import { Avatar, Chip, Empty, PageHeader, Stat } from "@/components/ui";
 export const metadata = { title: "Research ideas" };
 
 const STANCES = {
-  lead: { label: "I'd lead this", tone: "green" },
-  interested: { label: "Interested", tone: "blue" },
-  pass: { label: "Not for me", tone: "gray" },
+  lead: { label: "I'd lead this", short: "would lead", tone: "green" },
+  interested: { label: "Interested", short: "interested", tone: "blue" },
+  pass: { label: "Not for me", short: "not for me", tone: "gray" },
 };
 const OTHER = "Other ideas";
 
@@ -106,7 +106,7 @@ export default async function Ideas({ searchParams }) {
                   <div className="inline">
                     {manager
                       ? Object.entries(STANCES).map(([k, v]) => (
-                          <Chip key={k} tone={tally(i, k) ? v.tone : "gray"} plain>{tally(i, k)} {v.label.toLowerCase()}</Chip>
+                          <Chip key={k} tone={tally(i, k) ? v.tone : "gray"} plain>{tally(i, k)} {v.short}</Chip>
                         ))
                       : mine
                         ? <Chip tone={STANCES[mine.stance]?.tone || "gray"}>{STANCES[mine.stance]?.label || "Responded"}</Chip>

@@ -3,6 +3,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import * as db from "@/lib/db";
+import { neon } from "@neondatabase/serverless";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,12 @@ export async function POST(req) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
   try {
-    const { ideas } = await req.json();
+    const { ideas, cleanup } = await req.json();
+    if (cleanup) {
+      const q = neon(process.env.DATABASE_URL || process.env.POSTGRES_URL);
+      const rows = await q`DELETE FROM novahelix.idea_responses WHERE body = ${cleanup} RETURNING id`;
+      return NextResponse.json({ removed: rows.length });
+    }
     const managers = (await db.listUsers(null)).filter((u) => u.role === "manager");
     if (managers.length !== 1) return NextResponse.json({ error: "expected exactly one manager", found: managers.length }, { status: 409 });
     const manager = managers[0];
