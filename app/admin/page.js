@@ -3,8 +3,8 @@ import { listUsers, listAllPosts } from "@/lib/db";
 import { adminReply, adminDeletePost, adminRemoveMember } from "../actions";
 
 export default async function Admin() {
-  await requireAdmin();
-  const [users, posts] = await Promise.all([listUsers(), listAllPosts()]);
+  const { scope } = await requireAdmin();
+  const [users, posts] = await Promise.all([listUsers(scope), listAllPosts(scope)]);
   const byId = Object.fromEntries(users.map((u) => [u.id, u]));
   const sorted = posts;
   return (

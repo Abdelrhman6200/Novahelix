@@ -43,7 +43,7 @@ export async function login(fd) {
   const user = await db.findUserByEmail(email);
   if (!user || !verifyPassword(password, user.passwordHash)) fail("/login", "Invalid email or password.");
   await startSession({ uid: user.id, role: "member" });
-  redirect("/dashboard");
+  redirect(user.role === "manager" ? "/admin" : "/dashboard");
 }
 
 export async function adminLogin(fd) {
@@ -71,24 +71,24 @@ export async function createPost(fd) {
 }
 
 export async function adminReply(fd) {
-  await requireAdmin();
+  const { scope } = await requireAdmin();
   const postId = str(fd, "postId", 64);
   const body = str(fd, "body", 5000);
   if (!body) return;
-  await db.addReply({ id: id(), postId, body });
+  await db.addReply({ id: id(), postId, body, scope });
   revalidatePath("/admin");
 }
 
 export async function adminDeletePost(fd) {
-  await requireAdmin();
+  const { scope } = await requireAdmin();
   const postId = str(fd, "postId", 64);
-  await db.deletePost(postId);
+  await db.deletePost(postId, scope);
   revalidatePath("/admin");
 }
 
 export async function adminRemoveMember(fd) {
-  await requireAdmin();
+  const { scope } = await requireAdmin();
   const userId = str(fd, "userId", 64);
-  await db.removeUser(userId);
+  await db.removeUser(userId, scope);
   revalidatePath("/admin");
 }

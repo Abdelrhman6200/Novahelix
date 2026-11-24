@@ -5,7 +5,7 @@ import { createPost } from "../actions";
 
 export default async function Dashboard({ searchParams }) {
   const s = await requireMember();
-  if (s.role === "admin") redirect("/admin");
+  if (s.role !== "member") redirect("/admin");
   const { error } = await searchParams;
   // Members only ever receive their own posts.
   const posts = await listPostsForUser(s.user.id);

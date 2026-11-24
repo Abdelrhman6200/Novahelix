@@ -7,7 +7,7 @@ export const metadata = { title: "Sign in · Nova Helix Research Hub" };
 
 export default async function Login({ searchParams }) {
   const s = await getSession();
-  if (s) redirect(s.role === "admin" ? "/admin" : "/dashboard");
+  if (s) redirect(s.role === "member" ? "/dashboard" : "/admin");
   const { error, as } = await searchParams;
   const admin = as === "admin";
   return (
