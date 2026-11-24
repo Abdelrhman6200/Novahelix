@@ -49,8 +49,15 @@ export async function login(fd) {
 export async function adminLogin(fd) {
   const email = str(fd, "email", 200).toLowerCase();
   const password = String(fd.get("password") ?? "");
-  if (!isAdminLogin(email, password)) fail("/login?as=admin", "Invalid administrator credentials.");
-  await startSession({ uid: "admin", role: "admin" });
+  if (isAdminLogin(email, password)) {
+    await startSession({ uid: "admin", role: "admin" });
+    redirect("/admin");
+  }
+  const user = await db.findUserByEmail(email);
+  if (!user || user.role !== "manager" || !verifyPassword(password, user.passwordHash)) {
+    fail("/login?as=admin", "Invalid administrator credentials.");
+  }
+  await startSession({ uid: user.id, role: "member" });
   redirect("/admin");
 }
 
@@ -91,4 +98,39 @@ export async function adminRemoveMember(fd) {
   const userId = str(fd, "userId", 64);
   await db.removeUser(userId, scope);
   revalidatePath("/admin");
+}
+
+export async function adminSetTrackerName(fd) {
+  const { scope } = await requireAdmin();
+  const userId = str(fd, "userId", 64);
+  const name = str(fd, "name", 200);
+  await db.setTrackerName(userId, name || null, scope);
+  revalidatePath("/admin");
+}
+
+export async function postIdea(fd) {
+  const s = await requireMember();
+  if (s.role !== "manager") redirect("/ideas");
+  const title = str(fd, "title", 150);
+  const body = str(fd, "body", 5000);
+  if (!title || !body) fail("/ideas", "Title and description are required.");
+  await db.createIdea({ id: id(), managerId: s.user.id, title, body });
+  revalidatePath("/ideas");
+  redirect("/ideas");
+}
+
+export async function removeIdea(fd) {
+  const s = await requireMember();
+  if (s.role !== "manager") redirect("/ideas");
+  await db.deleteIdea(str(fd, "ideaId", 64), s.user.id);
+  revalidatePath("/ideas");
+}
+
+export async function respondToIdea(fd) {
+  const s = await requireMember();
+  if (s.role !== "member") redirect("/ideas");
+  const body = str(fd, "body", 5000);
+  if (!body) return;
+  await db.addIdeaResponse({ id: id(), ideaId: str(fd, "ideaId", 64), user: s.user, body });
+  revalidatePath("/ideas");
 }

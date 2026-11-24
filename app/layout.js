@@ -18,7 +18,8 @@ export default async function RootLayout({ children }) {
           <nav>
             {!s && <Link href="/login">Sign in</Link>}
             {!s && <Link href="/register">Join</Link>}
-            {s?.role === "member" && <Link href="/dashboard">Discussion</Link>}
+            {s?.role === "member" && <Link href="/dashboard">My projects</Link>}
+            {(s?.role === "member" || s?.role === "manager") && <Link href="/ideas">Research ideas</Link>}
             {(s?.role === "admin" || s?.role === "manager") && <Link href="/admin">Admin</Link>}
             {s && (
               <form action={logout}>
