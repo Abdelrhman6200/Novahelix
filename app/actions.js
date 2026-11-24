@@ -16,7 +16,7 @@ import {
 } from "@/lib/auth";
 
 const str = (fd, k, max) => String(fd.get(k) ?? "").trim().slice(0, max);
-const fail = (path, msg) => redirect(`${path}?error=${encodeURIComponent(msg)}`);
+const fail = (path, msg) => redirect(`${path}${path.includes("?") ? "&" : "?"}error=${encodeURIComponent(msg)}`);
 const id = () => crypto.randomUUID();
 
 export async function register(fd) {
@@ -44,6 +44,14 @@ export async function login(fd) {
   if (!user || !verifyPassword(password, user.passwordHash)) fail("/login", "Invalid email or password.");
   await startSession({ uid: user.id, role: "member" });
   redirect("/dashboard");
+}
+
+export async function adminLogin(fd) {
+  const email = str(fd, "email", 200).toLowerCase();
+  const password = String(fd.get("password") ?? "");
+  if (!isAdminLogin(email, password)) fail("/login?as=admin", "Invalid administrator credentials.");
+  await startSession({ uid: "admin", role: "admin" });
+  redirect("/admin");
 }
 
 export async function logout() {

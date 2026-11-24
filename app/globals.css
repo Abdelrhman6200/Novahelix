@@ -22,3 +22,17 @@ table{width:100%;border-collapse:collapse;font-size:.92em}
 th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);vertical-align:top}
 .tablewrap{overflow-x:auto}
 .badge{background:var(--ac);color:#fff;border-radius:99px;padding:1px 9px;font-size:.8em}
+.auth{display:flex;justify-content:center;padding:24px 0}
+.auth-card{width:100%;max-width:420px;padding:28px 24px}
+.auth-head{text-align:center;margin-bottom:16px}
+.auth-head h1{font-size:1.5rem;margin:.3em 0 .1em}
+.logo{font-size:2rem}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:4px;margin-bottom:16px}
+.tab{text-align:center;padding:8px;border-radius:7px;text-decoration:none;color:var(--mut);font-weight:600}
+.tab.on{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+label{display:grid;gap:4px;font-size:.9em;font-weight:600}
+label input{font-weight:400}
+input:focus,textarea:focus{outline:2px solid var(--ac);outline-offset:1px}
+.alert{background:color-mix(in srgb,var(--err) 12%,transparent);color:var(--err);border:1px solid var(--err);border-radius:8px;padding:10px;margin:0 0 12px}
+button.wide{width:100%;padding:11px}
+.center{text-align:center}
