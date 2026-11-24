@@ -38,7 +38,7 @@ export default async function Members() {
                         <button className="ghost sm">Save</button>
                       </form>
                     </td>
-                    <td>{u.trackerName ? (n ? <Chip tone="green">Linked</Chip> : <Chip tone="amber">No match</Chip>) : <Chip>Not linked</Chip>}</td>
+                    <td>{u.trackerName ? (n ? <Chip tone="green">Linked</Chip> : <Chip tone="blue">Linked · no projects yet</Chip>) : <Chip>Not linked</Chip>}</td>
                     <td>{n}</td>
                     <td>
                       <details className="confirm">
